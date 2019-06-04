@@ -2,7 +2,7 @@ MIPS_TOOLCHAIN:=mipsel-linux-gnu-
 
 TARGET=boot
 CFLAGS=-Os -nostdlib -mno-abicalls -fno-pic
-COBJS=main.o init.o debug.o
+COBJS=main.o init.o debug.o lowlevel/simple_printf.o
 ASOBJS=reset.o
 
 MIPS_OBJCOPY=$(MIPS_TOOLCHAIN)objcopy
@@ -35,5 +35,5 @@ $(TARGET).dump: $(TARGET).elf
 	$(MIPS_AS) -mips32 $< -o $@
 
 # deps
-debug.o: debug.h ports.h
-main.o: debug.h ports.h
+debug.o: debug.h lowlevel/ports.h
+main.o: debug.h lowlevel/ports.h
