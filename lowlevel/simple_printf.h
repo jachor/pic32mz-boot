@@ -4,6 +4,6 @@
 #include <stdarg.h>
  
 typedef void (*append_func_t)(char);
-void simple_print_formatted(append_func_t append, const char *fmt, va_list args);
+extern void simple_print_formatted(append_func_t append, const char *fmt, va_list args);
 
 #endif

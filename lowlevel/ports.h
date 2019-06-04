@@ -2,7 +2,7 @@
 #define j_ports_h__
 
 #include <stdint.h>
-#include "memory.h"
+#include "lowlevel/memory.h"
 
 PACKED_STRUCT
 struct CombinedCommandRegister {

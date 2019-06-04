@@ -15,6 +15,7 @@
   asm volatile("mtc0 %z0, $%1, %2":: "r" ((uint32_t) (value)), "K" (reg), "K" (selector)); \
 })
 
+// Returns address in uncached KSEG1.
 __attribute__((always_inline))
 static inline void *cacheless_addr(void *ptr) {
   uint32_t addr = (uint32_t) ptr;
@@ -22,6 +23,17 @@ static inline void *cacheless_addr(void *ptr) {
   addr = addr & ~0xE0000000;
   // use KSEG1, uncached
   addr |= 0xa0000000;
+  return (void*) addr;
+}
+
+// Returns address in (potentially) cached KSEG0
+__attribute__((always_inline))
+static inline void *cached_addr(void *ptr) {
+  uint32_t addr = (uint32_t) ptr;
+  // assume it is in lower 0.5GiB
+  addr = addr & ~0xE0000000;
+  // use KSEG0, cached
+  addr |= 0x80000000;
   return (void*) addr;
 }
 

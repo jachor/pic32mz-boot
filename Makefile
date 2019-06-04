@@ -1,39 +1,61 @@
-MIPS_TOOLCHAIN:=mipsel-linux-gnu-
+TARGET:=boot
+LINKER_SCRIPT:=lowlevel/linker.ld
+SRCS:=$(wildcard *.c)
+SRCS+=$(wildcard lowlevel/*.c lowlevel/*.S)
+CFLAGS:=-Os -nostdlib -mno-abicalls -fno-pic -I$(shell pwd)
 
-TARGET=boot
-CFLAGS=-Os -nostdlib -mno-abicalls -fno-pic
-COBJS=main.o init.o debug.o lowlevel/simple_printf.o
-ASOBJS=reset.o
+MIPS_TOOLCHAIN:=mipsel-linux-gnu-
 
 MIPS_OBJCOPY=$(MIPS_TOOLCHAIN)objcopy
 MIPS_OBJDUMP=$(MIPS_TOOLCHAIN)objdump
 MIPS_AS=$(MIPS_TOOLCHAIN)as
 MIPS_CC=$(MIPS_TOOLCHAIN)gcc
 MIPS_LD=$(MIPS_TOOLCHAIN)ld
-OBJS=$(COBJS) $(ASOBJS)
+
+OBJDIR=.obj
+COBJS:=$(addprefix $(OBJDIR)/,$(patsubst %.c,%.o, $(filter %.c, $(SRCS))))
+ASOBJS:=$(addprefix $(OBJDIR)/,$(patsubst %.S,%.o, $(filter %.S, $(SRCS))))
+OBJS:=$(COBJS) $(ASOBJS)
+DEPS:=$(patsubst %.o,%.d,$(COBJS))
+dep_file_name=$(patsubst %.o,%.d,$@)
+temp_dep_file_name=$(patsubst %.o,%.Td,$@)
+
+define announce
+	@tput setaf 2
+	@echo "> $1"
+	@tput sgr0
+endef
 
 .PHONY: all clean
 
-all: $(TARGET).elf $(TARGET).srec $(TARGET).dump
+all: $(TARGET).elf $(TARGET).srec
 
 clean:
-	rm -f *.o $(TARGET).elf $(TARGET).srec
+	$(call announce, "Cleaning up")
+	@rm -f \
+		$(OBJS) $(DEPS) \
+		$(TARGET).dump $(TARGET).map $(TARGET).elf $(TARGET).srec
 
-$(TARGET).elf: linker.ld $(OBJS)
-	$(MIPS_LD) -nostdlib -T linker.ld $(OBJS) -o $@
+$(TARGET).elf: $(LINKER_SCRIPT) $(OBJS)
+	$(call announce, "Linking" $@)
+	@$(MIPS_LD) -nostdlib -T $(LINKER_SCRIPT) $(OBJS) -o $@
+	@$(MIPS_OBJDUMP) -xd $(TARGET).elf > $(TARGET).dump
+	@size -x $(TARGET).elf
 
 $(TARGET).srec: $(TARGET).elf
-	$(MIPS_OBJCOPY) -O srec $(TARGET).elf $(TARGET).srec
+	$(call announce, "Generating SREC" $@)
+	@$(MIPS_OBJCOPY) -O srec $(TARGET).elf $(TARGET).srec
 	
-$(TARGET).dump: $(TARGET).elf
-	$(MIPS_OBJDUMP) -xd $(TARGET).elf > $(TARGET).dump
+$(COBJS): $(OBJDIR)/%.o: %.c
+	$(call announce, "Compiling" $<)
+	@mkdir -p $(@D)
+	@$(MIPS_CC) $(CFLAGS) \
+		-MT $@ -MMD -MP -MF $(temp_dep_file_name) \
+		-c $< -o $@
+	@mv -f $(temp_dep_file_name) $(dep_file_name)
 
-%.o: %.c
-	$(MIPS_CC) $(CFLAGS) -c $< -o $@
+$(ASOBJS): $(OBJDIR)/%.o: %.S
+	$(call announce, "Assembling" $<)
+	@$(MIPS_AS) -mips32 $< -o $@
 
-%.o: %.S
-	$(MIPS_AS) -mips32 $< -o $@
-
-# deps
-debug.o: debug.h lowlevel/ports.h
-main.o: debug.h lowlevel/ports.h
+-include $(DEPS)

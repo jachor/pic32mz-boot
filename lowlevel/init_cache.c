@@ -1,17 +1,8 @@
 /**
- * Low level initialization code.
- *
- * Sets up caches and C execution environment.
+ * CPU cache initialization code.
  */
 #include <stdint.h>
 #include "lowlevel/memory.h"
-
-extern void _bss_start();
-extern void _bss_end();
-
-extern void _data_src_start();
-extern void _data_start();
-extern void _data_end();
 
 CODE_CACHELESS
 static uint32_t read_cp0_config1() {
@@ -94,28 +85,9 @@ static void _enable_cache() {
   write_c0_reg(16, 0, config);
 }
 
-CODE_CACHELESS
-static void _zero_mem(void *start, void *end) {
-  for (uint32_t *p = start; (void*)p<end; p++) {
-    *p = 0;
-  }
-}
 
 CODE_CACHELESS
-static void _copy_mem(void *dest, void *dest_end, void *src) {
-  for (uint32_t *s=src, *d=dest; (void*)d<dest_end; s++, d++) {
-    *d = *s;
-  }
-}
-
-CODE_CACHELESS
-void _setup_environment() {
-  _zero_mem(cacheless_addr(_bss_start), cacheless_addr(_bss_end));
-  _copy_mem(
-      cacheless_addr(_data_start),
-      cacheless_addr(_data_end),
-      cacheless_addr(_data_src_start));
-
+void _initialize_cache() {
   _invalidate_icache();
   _invalidate_dcache();
 

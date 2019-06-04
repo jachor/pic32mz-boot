@@ -23,3 +23,6 @@
 *.hex
 *.srec
 
+# vim
+*.un~
+*.swp
