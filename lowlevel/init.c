@@ -3,6 +3,7 @@
  */
 #include <stdint.h>
 #include "lowlevel/printk.h"
+#include "lowlevel/clock.h"
 #include "lowlevel/ports.h"
 #include "lowlevel/memory.h"
 
@@ -17,7 +18,7 @@ static void _describe_cache(const char *name, uint32_t desc_bits) {
   int s = (desc_bits >> 6) & 0x7;
   int l = (desc_bits >> 3) & 0x7;
   int a = (desc_bits >> 0) & 0x7;
-  
+
   if (l != 0) {
     int line_size = 2 << l;
     int sets_per_way = 64 << s;
@@ -30,7 +31,10 @@ static void _describe_cache(const char *name, uint32_t desc_bits) {
 }
 
 static void _describe_system() {
-    printk("\r\n\r\nBooted\r\n");
+    uint32_t devid = DeviceIdAndConfig->DEVID.reg;
+    printk("CPU @%d MHz, revision %d, id 0x%x.\r\n",
+           clock_get_peripheral_bus_clock_hz(7)/1000000,
+           devid >> 28, devid & ((1<<28)-1));
     uint32_t config1 = read_c0_reg(16, 1);
     _describe_cache("D-cache", config1 >> 7);
     _describe_cache("I-cache", config1 >> 16);
@@ -65,6 +69,11 @@ void _initialize() {
       cached_addr(_data_src_start));
 
   printk_init();
+  printk("\r\n\r\nBooted, switching clock\r\n");
+  printk_flush();
+  clock_init();
+  printk_init(); // We need to reset printk due to clock change.
+
   _describe_system();
 }
 

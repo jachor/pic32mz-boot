@@ -141,6 +141,47 @@ struct UartSfrs {
     struct CombinedCommandRegister BRG;
 };
 
+PACKED_STRUCT
+struct OscillatorConfigSfrs {
+  // addr=0xbf80_1200
+  struct CombinedCommandRegister OSCCON;
+  struct CombinedCommandRegister OSCTUN;
+  struct CombinedCommandRegister SPLLCON;
+  uint8_t __padding0[0x50];
+  struct CombinedCommandRegister REFO1CON;
+  struct CombinedCommandRegister REFO1TRIM;
+  struct CombinedCommandRegister REFO2CON;
+  struct CombinedCommandRegister REFO2TRIM;
+  struct CombinedCommandRegister REFO3CON;
+  struct CombinedCommandRegister REFO3TRIM;
+  struct CombinedCommandRegister REFO4CON;
+  struct CombinedCommandRegister REFO4TRIM;
+  struct CombinedCommandRegister PB1DIV;
+  struct CombinedCommandRegister PB2DIV;
+  struct CombinedCommandRegister PB3DIV;
+  struct CombinedCommandRegister PB4DIV;
+  struct CombinedCommandRegister PB5DIV;
+  struct CombinedCommandRegister __padding1;
+  struct CombinedCommandRegister PB7DIV;
+  struct CombinedCommandRegister PB8DIV;
+  uint8_t __padding2[0x40];
+  struct CombinedCommandRegister SLEWCON;
+  struct CombinedCommandRegister CLKSTAT;
+};
+
+PACKED_STRUCT
+struct DeviceIdAndConfigSfrs {
+  // addr=0xbf80_0000
+  struct CombinedCommandRegister CFGCON;
+  struct CombinedCommandRegister __padding0[1];
+  struct CombinedCommandRegister DEVID;
+  struct CombinedCommandRegister SYSKEY;
+  struct CombinedCommandRegister __padding1[8];
+  struct CombinedCommandRegister CFGEBIA;
+  struct CombinedCommandRegister CFGEBIC;
+  struct CombinedCommandRegister CFGPG;
+};
+
 #define PortA ((struct IoPortSfrs*)0xbf860000)
 #define PortB ((struct IoPortSfrs*)0xbf860100)
 #define PortC ((struct IoPortSfrs*)0xbf860200)
@@ -154,5 +195,9 @@ struct UartSfrs {
 #define Uart4 ((struct UartSfrs*)0xbf822600)
 #define Uart5 ((struct UartSfrs*)0xbf822800)
 #define Uart6 ((struct UartSfrs*)0xbf822a00)
+
+#define OscillatorConfig ((struct OscillatorConfigSfrs*)0xbf801200)
+
+#define DeviceIdAndConfig ((struct DeviceIdAndConfigSfrs*)0xbf800000)
 
 #endif

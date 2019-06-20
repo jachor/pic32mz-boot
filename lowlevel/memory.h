@@ -1,6 +1,8 @@
 #ifndef lowlevel_memory_h__
 #define lowlevel_memory_h__
 
+#include <stdint.h>
+
 #define PACKED_STRUCT __attribute__((packed))
 
 #define CODE_CACHELESS  __attribute__((section(".text.nocache")))

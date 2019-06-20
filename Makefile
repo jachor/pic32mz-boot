@@ -38,12 +38,12 @@ clean:
 
 $(TARGET).elf: $(LINKER_SCRIPT) $(OBJS)
 	$(call announce, "Linking" $@)
-	@$(MIPS_LD) -nostdlib -T $(LINKER_SCRIPT) $(OBJS) -o $@
+	@$(MIPS_LD) -nostdlib -T $(LINKER_SCRIPT) $(OBJS) -Map $(TARGET).map -o $@
 	@$(MIPS_OBJDUMP) -xd $(TARGET).elf > $(TARGET).dump
 	@size -x $(TARGET).elf
 
 $(TARGET).srec: $(TARGET).elf
-	$(call announce, "Generating SREC" $@)
+	$(call announce, "Generating binary" $@)
 	@$(MIPS_OBJCOPY) -O srec $(TARGET).elf $(TARGET).srec
 	
 $(COBJS): $(OBJDIR)/%.o: %.c

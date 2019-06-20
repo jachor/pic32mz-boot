@@ -1,4 +1,5 @@
 #include "lowlevel/printk.h"
+#include "lowlevel/clock.h"
 #include "lowlevel/ports.h"
 #include "lowlevel/simple_printf.h"
 #include <stdarg.h>
@@ -20,13 +21,18 @@ static void uart_blocking_write(struct UartSfrs *uart, uint8_t data) {
     uart->TXREG = data;
 }
 
+static void uart_blocking_flush(struct UartSfrs *uart) {
+    // wait for Transmit shift register is empty bit
+    while (!(uart->STA.reg & (1<<8))) {}
+}
+
 void printk_init() {
     // RPB2 -> UART TX
     PortPps->output.RPB2R = 0x2; /* Uart2 TX */
     PortB->TRIS.clr = 1<<2;
     PortB->ODC.clr = 1<<2;
 
-    uart_init(Uart2, 8000000 / 2, 9600);
+    uart_init(Uart2, clock_get_peripheral_bus_clock_hz(2), PRINTK_UART_BAUDRATE);
 }
 
 static void _debug_putc(const char z) {
@@ -39,3 +45,8 @@ void printk(const char *fmt, ...) {
     simple_print_formatted(_debug_putc, fmt, args);
     va_end(args);
 }
+
+void printk_flush() {
+  uart_blocking_flush(Uart2);
+}
+

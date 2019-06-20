@@ -12,7 +12,7 @@ static void sleep() {
 
 void main() {
     printk("Hello, world\r\n");
-    
+
     PortC->TRIS.clr = LED_PINS;
     PortC->ODC.clr = LED_PINS;
     for(;;) {

@@ -26,6 +26,8 @@ SECTIONS {
         PROVIDE(_bss_start = .);
         *(.bss)
         *(.bss.*)
+        *(.sbss)
+        *(.sbss.*)
         . = ALIGN(_data_alignment);
         PROVIDE(_bss_end = .);
     } >kseg0_ram
