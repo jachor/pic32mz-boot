@@ -3,6 +3,7 @@ LINKER_SCRIPT:=lowlevel/linker.ld
 SRCS:=$(wildcard *.c)
 SRCS+=$(wildcard lowlevel/*.c lowlevel/*.S)
 CFLAGS:=-Os -nostdlib -mno-abicalls -fno-pic -I$(shell pwd)
+LDFLAGS=-nostdlib
 
 MIPS_TOOLCHAIN:=mipsel-linux-gnu-
 
@@ -38,14 +39,14 @@ clean:
 
 $(TARGET).elf: $(LINKER_SCRIPT) $(OBJS)
 	$(call announce, "Linking" $@)
-	@$(MIPS_LD) -nostdlib -T $(LINKER_SCRIPT) $(OBJS) -Map $(TARGET).map -o $@
+	@$(MIPS_LD) $(LDFLAGS) -T $(LINKER_SCRIPT) $(OBJS) -Map $(TARGET).map -o $@
 	@$(MIPS_OBJDUMP) -xd $(TARGET).elf > $(TARGET).dump
 	@size -x $(TARGET).elf
 
 $(TARGET).srec: $(TARGET).elf
 	$(call announce, "Generating binary" $@)
 	@$(MIPS_OBJCOPY) -O srec $(TARGET).elf $(TARGET).srec
-	
+
 $(COBJS): $(OBJDIR)/%.o: %.c
 	$(call announce, "Compiling" $<)
 	@mkdir -p $(@D)
