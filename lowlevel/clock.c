@@ -1,6 +1,7 @@
 #include "lowlevel/clock.h"
 #include "lowlevel/printk.h"
 #include "lowlevel/ports.h"
+#include "lowlevel/memory.h"
 
 #define FRC_CLOCK_HZ (8 * 1000000)
 #define POSC_CLOCK_HZ (12 * 1000000)
@@ -83,5 +84,18 @@ void clock_init() {
   _setup_pll();
   _switch_to_pll();
   _wait_for_pll_lock();
+}
+
+static int _clock_usec_to_ticks(int usec) {
+  // counter counts at _sysclk_hz / 2.
+  // NOTE: This only works because _sysclk_hz is integer MHz. I don't want to
+  // implement __divdi and friends yet.
+  return usec * (_sysclk_hz / 1000000) / 2;
+}
+
+void clock_sleep_usec(int usec) {
+  if (usec < 0) usec = 0;
+  uint32_t target = read_c0_reg(9,0) + _clock_usec_to_ticks(usec);
+  while ((int)(read_c0_reg(9,0) - target) < 0) ;
 }
 

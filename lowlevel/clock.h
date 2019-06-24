@@ -5,5 +5,7 @@ extern int clock_get_peripheral_bus_clock_hz(int index);
 
 extern void clock_init();
 
+extern void clock_sleep_usec(int usec);
+
 #endif
 
