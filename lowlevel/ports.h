@@ -182,6 +182,81 @@ struct DeviceIdAndConfigSfrs {
   struct CombinedCommandRegister CFGPG;
 };
 
+PACKED_STRUCT
+struct UsbControllerTxRxAddrSfrs {
+  volatile uint32_t TXA;
+  volatile uint32_t RXA;
+};
+
+PACKED_STRUCT
+struct UsbControllerEndpointCsrSfrs {
+  volatile uint32_t CSR0;
+  volatile uint32_t CSR1;
+  volatile uint32_t CSR2;
+  volatile uint32_t CSR3;
+};
+
+PACKED_STRUCT
+struct UsbControllerEndpointDmaSfrs {
+  volatile uint32_t __pading;
+  volatile uint32_t CONTROL;
+  volatile uint32_t ADDRESS;
+  volatile uint32_t COUNT;
+};
+
+PACKED_STRUCT
+struct UsbControllerEndpointFifoSfrs {
+  union {
+    volatile uint32_t r32;
+    struct { // doesn't work
+      volatile uint8_t r8;
+    };
+    volatile uint8_t indexed8[4];
+  };
+};
+
+PACKED_STRUCT
+struct UsbControllerSfrs {
+  // addr=0xbf8e_3000
+  // Control Status Register
+  volatile uint32_t USBCSR0;
+  volatile uint32_t USBCSR1;
+  volatile uint32_t USBCSR2;
+  volatile uint32_t USBCSR3;
+  // indexed endpoint CSR, index=USBCSR3<19:16>
+  struct UsbControllerEndpointCsrSfrs USBIE_CSR;
+  struct UsbControllerEndpointFifoSfrs USBEP_FIFO[16];
+  volatile uint32_t USBOTG;
+  volatile uint32_t USBFIFOA;
+  uint32_t __padding0;
+  volatile uint32_t USBHWVER;
+  uint32_t __padding1[2];
+  volatile uint32_t USBINFO;
+  volatile uint32_t USBEOFRST;
+  struct UsbControllerTxRxAddrSfrs USBEP_ADDR[16];
+  struct UsbControllerEndpointCsrSfrs USBEP_CSR[16];
+
+  // DMA
+  union {
+    volatile uint32_t USBDMAINT;
+    struct UsbControllerEndpointDmaSfrs USBDMA[16];
+  };
+
+  volatile uint32_t USBEP_RPC[16];
+  volatile uint32_t USBDPBFD;
+  volatile uint32_t USBTMCON1;
+  volatile uint32_t USBTMCON2;
+  uint32_t __padding2[5];
+  volatile uint32_t USBLPMR1;
+  volatile uint32_t USBLPMR2;
+};
+
+PACKED_STRUCT
+struct UsbControllerSfrs2 {
+  // addr=0xbf88_4000
+  volatile uint32_t USBCRCON;
+};
+
 #define PortA ((struct IoPortSfrs*)0xbf860000)
 #define PortB ((struct IoPortSfrs*)0xbf860100)
 #define PortC ((struct IoPortSfrs*)0xbf860200)
@@ -199,5 +274,8 @@ struct DeviceIdAndConfigSfrs {
 #define OscillatorConfig ((struct OscillatorConfigSfrs*)0xbf801200)
 
 #define DeviceIdAndConfig ((struct DeviceIdAndConfigSfrs*)0xbf800000)
+
+#define UsbController ((struct UsbControllerSfrs*)0xbf8e3000)
+#define UsbController2 ((struct UsbControllerSfrs2*)0xbf884000)
 
 #endif
