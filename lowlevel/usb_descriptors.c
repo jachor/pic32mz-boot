@@ -10,6 +10,7 @@ static const struct UsbDescriptor_Device _device_descriptor = {
   .idVendor = 0x1234,
   .idProduct = 0xabcd,
   .iManufacturer = 51,
+  .iProduct = 52,
   .bNumConfigurations = 1,
 };
 
@@ -35,6 +36,7 @@ static const struct UsbDescriptor_Configuration _config1_descriptor = {
 
 _STRING_DESCRIPTOR(_string_langids, USB_LANGID_ENGLISH_US);
 _STRING_DESCRIPTOR(_string_manufacturer, 'J', 'a', 'c', 'h', 'o', 'r');
+_STRING_DESCRIPTOR(_string_product, 'D', 'u', 'p', 'a', ' ', 0x26fa);
 
 #define _RETURN_DESCRIPTOR(descriptor) ({*out_ptr=&(descriptor); *len=sizeof((descriptor)); return;})
 void usb_ep0_get_descriptor(const struct UsbSetupPacket *setup, const void **out_ptr, int *len) {
@@ -61,6 +63,7 @@ void usb_ep0_get_descriptor(const struct UsbSetupPacket *setup, const void **out
       switch (descriptor_index) {
         case 0:  _RETURN_DESCRIPTOR(_string_langids);
         case 51:  _RETURN_DESCRIPTOR(_string_manufacturer);
+        case 52:  _RETURN_DESCRIPTOR(_string_product);
         default: break;
       }
       break;

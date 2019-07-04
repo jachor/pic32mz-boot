@@ -16,20 +16,7 @@
 #define USBEP0_CSR0_SETUP_END_SERVICED (1<<23)
 #define USBEP0_CSR0_FLUSH_FIFO (1<<24)
 
-void usb_ep_read(void *dest, int ep, int len) {
-  uint8_t *dest_ptr = (uint8_t *)dest;
-  while(len-->0) {
-    *dest_ptr = UsbController->USBEP_FIFO[ep].r8;
-    dest_ptr ++;
-  }
-}
-
-void usb_ep_write(const void *src, int ep, int len) {
-  const uint8_t *src_ptr = (uint8_t *)src;
-  for (int i=0; i<len; i++) {
-    UsbController->USBEP_FIFO[ep].indexed8[i%4] = src_ptr[i];
-  }
-}
+int _pending_new_address;
 
 const char test_text[] =
   "Co zozole w sobie maja ze je wszyscy zajadaja\r\n"
@@ -150,6 +137,7 @@ void _ep0_reset() {
   _ep0_state.state = EP0_WAITING_FOR_SETUP;
   _ep0_state.bytes_left = 0;
   _ep0_state.ptr = NULL;
+  _pending_new_address = -1;
 
   if (UsbController->USBEP_CSR[0].CSR0 & (USBEP0_CSR0_RX_READY | USBEP0_CSR0_TX_READY)) {
     printk("usb: ep0: reset, fifo non-empty, flushing.\r\n");
@@ -171,7 +159,8 @@ void _usb_ep0_no_data() {
   _ep0_state.state = EP0_WAITING_FOR_SETUP;
   UsbController->USBEP_CSR[0].CSR0 = 0
       | USBEP0_CSR0_RX_READY_SERVICED
-      | USBEP0_CSR0_DATA_END
+//      | USBEP0_CSR0_DATA_END
+//      | USBEP0_CSR0_TX_READY
       | 0;
 }
 
@@ -202,10 +191,10 @@ static void _usb_handle_ep0_setup() {
 
   switch(setup.bRequest) {
     case USB_SET_ADDRESS:
-      //UsbController->USBEP_CSR[0].CSR0 = (1<<17) | (1<<19);
       _usb_ep0_no_data();
       printk("usb: got new address %d\r\n", setup.wValue);
-      usb_set_address(setup.wValue);
+      _pending_new_address = setup.wValue;
+      //usb_set_address(setup.wValue);
       break;
 
     case USB_GET_DESCRIPTOR:
@@ -262,6 +251,10 @@ int usb_ep0_interrupt() {
   if (epcsr0 & USBEP0_CSR0_SETUP_END) {
     // Setup ended, reset state.
     printk("usb: ep0: SETUP ENDED\r\n");
+    if(_pending_new_address != -1) {
+      usb_set_address(_pending_new_address);
+      _pending_new_address = -1;
+    }
     _ep0_reset();
     UsbController->USBEP_CSR[0].CSR0 = USBEP0_CSR0_SETUP_END_SERVICED;
   }
@@ -330,7 +323,7 @@ int usb_ep0_interrupt() {
               | (is_last ? USBEP0_CSR0_DATA_END : 0)
               | USBEP0_CSR0_TX_READY;
 
-          printk("usb: ep0: sent %d bytes, is_last=%d, bytes_left=%d\r\n", len, is_last, _ep0_state.bytes_left);
+          //printk("usb: ep0: sent %d bytes, is_last=%d, bytes_left=%d\r\n", len, is_last, _ep0_state.bytes_left);
 
           if (is_last) {
             _ep0_state.state = EP0_RECEIVING_ZLP;

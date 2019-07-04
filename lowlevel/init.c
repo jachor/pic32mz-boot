@@ -68,9 +68,6 @@ void _initialize() {
       cached_addr(_data_end),
       cached_addr(_data_src_start));
 
-  printk_init();
-  printk("\r\n\r\nBooted, switching clock\r\n");
-  printk_flush();
   clock_init();
   printk_init(); // We need to reset printk due to clock change.
 

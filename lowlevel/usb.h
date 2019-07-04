@@ -10,4 +10,7 @@ extern void usb_set_address(uint8_t addr);
 extern void usb_ep0_reset();
 extern int usb_ep0_interrupt();
 
+extern void usb_ep_read(void *dest, int ep, int len);
+extern void usb_ep_write(const void *src, int ep, int len);
+
 #endif

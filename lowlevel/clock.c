@@ -79,11 +79,19 @@ static void _switch_to_pll() {
   _sysclk_hz = _pll_hz;
 }
 
+static void _setup_prefetch() {
+  int wait_states =
+    (_sysclk_hz < 60000000) ? 0 :
+    ((_sysclk_hz < 120000000) ? 1 : 2);
+  //PRECON = (3 << 4) | (wait_states << 0);
+}
+
 void clock_init() {
   _wait_for_primary_oscilator_lock();
   _setup_pll();
   _switch_to_pll();
   _wait_for_pll_lock();
+  _setup_prefetch();
 }
 
 static int _clock_usec_to_ticks(int usec) {
