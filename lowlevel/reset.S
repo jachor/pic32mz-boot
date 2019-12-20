@@ -4,20 +4,23 @@
         .global _reset
         .ent _reset
 
-        .set nomicromips
 _reset:
-    .word 0x10000003     /* MIPS32:    branch forward 0x10 bytes from here  */
-                         /* MicroMIPS: ADDI32 $0, $0, 0x0007 (nop)          */
-                         /* DO NOT change the relative branch               */
-    .word 0x00000000     /* NOP */
-        .set    micromips
+    # Entry point that should work on both mips32 and micromips.
+        .set nomicromips
+    # MicroMIPS: some arithmetics (sll)
+    # MIPS32: jump to entry point
+    b       _reset_mips32
+    # both: nop (branch slot for MIPS32)
+    nop
 _reset_micromips:
-    jalx    _reset_mips32 # change to MIPS32 ISA
+        .set    micromips
+    # change to MIPS32 ISA, jump to entry point
+    jalx    _reset_mips32
     nop
 
+    # This will be always executed in mips32
         .set nomicromips
 _reset_mips32:
-
 	# setup stack for uncached init
 	la      $sp, _kseg1_ram_end-0x10
     # initialize cache
@@ -41,4 +44,3 @@ _reset_mips32:
 	j       _reset
 	nop
 	.end _reset
-

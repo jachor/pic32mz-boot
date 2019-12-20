@@ -29,7 +29,7 @@ endef
 
 .PHONY: all clean
 
-all: $(TARGET).elf $(TARGET).srec
+all: $(TARGET).elf $(TARGET).srec $(TARGET).bin
 
 clean:
 	$(call announce, "Cleaning up")
@@ -44,8 +44,12 @@ $(TARGET).elf: $(LINKER_SCRIPT) $(OBJS)
 	@size -x $(TARGET).elf
 
 $(TARGET).srec: $(TARGET).elf
-	$(call announce, "Generating binary" $@)
+	$(call announce, "Generating SREC" $@)
 	@$(MIPS_OBJCOPY) -O srec $(TARGET).elf $(TARGET).srec
+
+$(TARGET).bin: $(TARGET).srec
+	$(call announce, "Generating binary" $@)
+	@$(MIPS_OBJCOPY) -I srec -O binary $(TARGET).srec $(TARGET).bin
 
 $(COBJS): $(OBJDIR)/%.o: %.c
 	$(call announce, "Compiling" $<)
